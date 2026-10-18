@@ -68,6 +68,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .mats b{display:block;font-weight:700;font-size:14.5px;line-height:1.3}
 .mats .where{font-size:13px;color:var(--muted)}
 .mats .code{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);direction:ltr;display:inline-block}
+.qsel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:14px;font-weight:600}
+.qsel select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
 .vrbtn{margin-top:12px;background:var(--olive);border-color:var(--olive)}
 .walkbtn{text-align:center;background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .walkbtn[aria-pressed="true"]{background:var(--oak);border-color:var(--oak)}
@@ -134,8 +136,10 @@ button{font:inherit;color:inherit;cursor:pointer}
       <button class="vbtn walkbtn" id="walkBtn" aria-pressed="false">התחלת הליכה בדירה</button>
       <p class="tip" id="walkTip">במחשב: חיצים או W A S D להליכה, וגרירה עם העכבר כדי להסתכל מסביב. בטלפון: גרירה כדי להסתכל, והכפתורים במסך כדי ללכת. לחיצה על דלת או ארון פותחת אותם.</p>
       <div class="toggles"><label class="tog"><input type="checkbox" id="shadowT" checked> צללים רכים</label></div>
+      <label class="qsel" for="vrQ">איכות ב־VR
+        <select id="vrQ"><option value="2.2" selected>מקסימום</option><option value="1.7">גבוהה</option><option value="1.3">רגילה (הכי חלק)</option></select></label>
       <button class="vbtn walkbtn vrbtn" id="vrBtn" hidden>כניסה ל־VR (Meta Quest)</button>
-      <p class="tip" id="vrTip">כדי להיכנס ל־VR, פתחו את הקישור הזה בדפדפן של המשקפיים. בתוך VR: הסטיק השמאלי להליכה, הסטיק הימני לסיבוב, וההדק כדי לפתוח דלת, מגירה או ארון שהלייזר מכוון אליהם. אם התמונה במשקפיים לא חלקה, כבו את "צללים רכים" לפני הכניסה.</p>
+      <p class="tip" id="vrTip">כדי להיכנס ל־VR, פתחו את הקישור הזה בדפדפן של המשקפיים. בתוך VR: הסטיק השמאלי להליכה, הסטיק הימני לסיבוב, וההדק כדי לפתוח דלת, מגירה או ארון שהלייזר מכוון אליהם. אם התמונה במשקפיים לא חלקה, בחרו איכות "גבוהה" או "רגילה", או כבו את "צללים רכים" לפני הכניסה.</p>
     </section>
 
     <section>
@@ -1071,9 +1075,9 @@ if(navigator.xr&&navigator.xr.isSessionSupported){navigator.xr.isSessionSupporte
 }).catch(()=>{});}
 vrBtn.addEventListener('click',async()=>{
   if(vrSession){vrSession.end();return;}
-  try{renderer.xr.setFramebufferScaleFactor(1.4);
+  try{const q=parseFloat(document.getElementById("vrQ").value)||1.4;renderer.xr.setFramebufferScaleFactor(q);
     const sess=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});
-    vrSession=sess;await renderer.xr.setSession(sess);if(renderer.xr.setFoveation)renderer.xr.setFoveation(.6);vrBtn.textContent='יציאה מ־VR';
+    vrSession=sess;await renderer.xr.setSession(sess);if(renderer.xr.setFoveation)renderer.xr.setFoveation(q>2?.75:q>1.5?.65:.5);vrBtn.textContent='יציאה מ־VR';
     savedCam={p:camera.position.clone(),q:camera.quaternion.clone(),walk:walking,shadow:renderer.shadowMap.enabled};
     if(walking)setWalk(false);setCut(false);anim=null;controls.enabled=false;
     const resizeShadow=n=>{sun.shadow.mapSize.set(n,n);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}};resizeShadow(2048);savedCam.resizeShadow=resizeShadow;
@@ -1179,6 +1183,7 @@ if(THREE.BufferGeometryUtils){scene.updateMatrixWorld(true);
     const mm=new THREE.Mesh(g,m);mm.castShadow=mm.receiveShadow=true;mm.matrixAutoUpdate=false;scene.add(mm);made++;}
   for(const o of drop)scene.remove(o);
   console.log('merged',drop.length,'meshes into',made);}
+{const af=renderer.capabilities.getMaxAnisotropy();scene.traverse(o=>{if(o.material)for(const m of[].concat(o.material))if(m.map&&m.map.anisotropy<af){m.map.anisotropy=af;m.map.needsUpdate=true;}});}
 document.getElementById('loading').hidden=true;
 renderer.setAnimationLoop(tick);
 };
