@@ -135,7 +135,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <p class="tip" id="walkTip">במחשב: חיצים או W A S D להליכה, וגרירה עם העכבר כדי להסתכל מסביב. בטלפון: גרירה כדי להסתכל, והכפתורים במסך כדי ללכת. לחיצה על דלת או ארון פותחת אותם.</p>
       <div class="toggles"><label class="tog"><input type="checkbox" id="shadowT" checked> צללים רכים</label></div>
       <button class="vbtn walkbtn vrbtn" id="vrBtn" hidden>כניסה ל־VR (Meta Quest)</button>
-      <p class="tip" id="vrTip">כדי להיכנס ל־VR, פתחו את הקישור הזה בדפדפן של המשקפיים. בתוך VR: הסטיק השמאלי להליכה, הסטיק הימני לסיבוב, וההדק כדי לפתוח דלת, מגירה או ארון שהלייזר מכוון אליהם.</p>
+      <p class="tip" id="vrTip">כדי להיכנס ל־VR, פתחו את הקישור הזה בדפדפן של המשקפיים. בתוך VR: הסטיק השמאלי להליכה, הסטיק הימני לסיבוב, וההדק כדי לפתוח דלת, מגירה או ארון שהלייזר מכוון אליהם. אם התמונה במשקפיים לא חלקה, כבו את "צללים רכים" לפני הכניסה.</p>
     </section>
 
     <section>
@@ -203,6 +203,7 @@ window.addEventListener('error',function(e){var l=document.getElementById('loadi
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <script>
 window.__start=function(){
 if(!window.THREE||!THREE.OrbitControls){document.getElementById('loading').textContent='ספריית התלת־ממד לא נטענה. בדקו את החיבור לאינטרנט ורעננו את הדף.';return;}
@@ -239,7 +240,7 @@ const tileTex=canvasTex(1024,(g,S)=>{const h=S/2;
   g.strokeStyle='#bfb8ad';g.lineWidth=2;for(const q of[1,h,S-1]){g.beginPath();g.moveTo(q,0);g.lineTo(q,S);g.stroke();g.beginPath();g.moveTo(0,q);g.lineTo(S,q);g.stroke();}});
 // SPC herringbone, plank 592x148 (4:1). Cell-rule: d = (cx-cy) mod 8 -> <4 horizontal, else vertical. Canvas = 8 plank widths.
 const HB_W=0.148, HB_SPAN=8*HB_W;
-const herrTex=canvasTex(512,(g,S)=>{
+const herrTex=canvasTex(1024,(g,S)=>{
   const U=S/8,n=4,P=8;g.fillStyle='#8c7a67';g.fillRect(0,0,S,S);
   const plank=(x,y,w,h,horiz,id)=>{const k=id;g.fillStyle=mix('#988571','#b6a48f',k);g.fillRect(x*U,y*U,w*U,h*U);
     grain(g,x*U,y*U,w*U,h*U,horiz,rng(Math.floor(id*1e9)+1),.16);
@@ -255,20 +256,20 @@ const deckTex=canvasTex(1024,(g,S)=>{const L=S/2,W=S/8;g.fillStyle='#3a291c';g.f
         const sx=Math.floor(id*IMG.deck.width*.25);g.drawImage(IMG.deck,sx,0,IMG.deck.width*.75,IMG.deck.height,-L/2,-W/2,L,W);}
       else{g.fillStyle='#7a5a40';g.fillRect(x,row*W,L,W);}
       g.restore();}}});
-const oakTex=canvasTex(512,(g,S)=>{g.fillStyle='#c4a179';g.fillRect(0,0,S,S);const r=rng(11);
+const oakTex=canvasTex(1024,(g,S)=>{g.fillStyle='#c4a179';g.fillRect(0,0,S,S);const r=rng(11);
   for(let i=0;i<260;i++){const x=r()*S;g.strokeStyle=`rgba(${r()>.5?'120,84,50':'228,200,160'},${.08+r()*.14})`;g.lineWidth=.5+r()*2;
     g.beginPath();g.moveTo(x,0);g.bezierCurveTo(x+(r()-.5)*14,S*.33,x+(r()-.5)*14,S*.66,x,S);g.stroke();}});
 // whitened oak (אלון מולבן): pale limed oak, fine grain with a white wash
-const oakWTex=canvasTex(512,(g,S)=>{g.fillStyle='#cdbda2';g.fillRect(0,0,S,S);const r=rng(17);
+const oakWTex=canvasTex(1024,(g,S)=>{g.fillStyle='#cdbda2';g.fillRect(0,0,S,S);const r=rng(17);
   for(let i=0;i<300;i++){const x=r()*S;g.strokeStyle=`rgba(${r()>.5?'132,106,76':'244,238,226'},${.1+r()*.16})`;g.lineWidth=.5+r()*1.8;
     g.beginPath();g.moveTo(x,0);g.bezierCurveTo(x+(r()-.5)*12,S*.33,x+(r()-.5)*12,S*.66,x,S);g.stroke();}
   g.fillStyle='rgba(250,247,241,.08)';g.fillRect(0,0,S,S);});
 // fluted whitened oak: the oakW grain with a soft groove shading every 2 cm
-const fluteWTex=canvasTex(512,(g,S)=>{g.drawImage(oakWTex.image,0,0,S,S);const P=16;
+const fluteWTex=canvasTex(1024,(g,S)=>{g.drawImage(oakWTex.image,0,0,S,S);const P=16;
   for(let x=0;x<S;x+=P){const gr=g.createLinearGradient(x,0,x+P,0);
     gr.addColorStop(0,'rgba(120,98,72,.28)');gr.addColorStop(.2,'rgba(255,252,246,.18)');gr.addColorStop(.75,'rgba(255,252,246,0)');gr.addColorStop(1,'rgba(120,98,72,.3)');
     g.fillStyle=gr;g.fillRect(x,0,P,S);}});
-const travTex=canvasTex(512,(g,S)=>{g.fillStyle='#d9cbb2';g.fillRect(0,0,S,S);const r=rng(5);
+const travTex=canvasTex(1024,(g,S)=>{g.fillStyle='#d9cbb2';g.fillRect(0,0,S,S);const r=rng(5);
   for(let i=0;i<40;i++){const y=r()*S;g.fillStyle=`rgba(${r()>.5?'190,170,138':'238,228,210'},${.15+r()*.2})`;g.fillRect(0,y,S,2+r()*14);}
   for(let i=0;i<500;i++){g.fillStyle=`rgba(140,115,85,${.15+r()*.3})`;g.beginPath();g.ellipse(r()*S,r()*S,1+r()*5,.6+r()*1.5,0,0,7);g.fill();}});
 const fluteTex=canvasTex(256,(g,S)=>{const P=16;for(let x=0;x<S;x+=P){const gr=g.createLinearGradient(x,0,x+P,0);
@@ -580,7 +581,7 @@ function curtain(axis,c,a,b,anchor,top=2.92){
     p.needsUpdate=true;g.computeVertexNormals();};
   set(0);
   const track=axis==='z'?box(c-.04,c+.04,top,top+.03,a-.04,b+.04,M.alu,false):box(a-.04,b+.04,top,top+.03,c-.04,c+.04,M.alu,false);
-  cutHooks.push(hh=>{const ht=Math.min(top-.02,hh)-.02;mesh.scale.y=Math.max(.01,ht);track.visible=hh>=H;});
+  track.userData.keep=true;cutHooks.push(hh=>{const ht=Math.min(top-.02,hh)-.02;mesh.scale.y=Math.max(.01,ht);track.visible=hh>=H;});
   return regOpen({g:mesh,kind:'curtain',cat:'curtain',apply:set},mesh);}
 curtain('z',7.6,.14,7.29,'a');      // east wall, full length; opens toward the balcony end, uncovering the window
 curtain('x',.1,.15,5.0,'a');        // balcony wall, from the corner to the TV wall; opens to the west corner, uncovering the glazing
@@ -915,7 +916,7 @@ wall(-4.64,-.13,-.24,-.13,.2);
    a full-height matching stone backsplash with an LED-lit bronze shelf, bronze fittings, and a dark-bronze louvred pergola with pendants.
    west → east: outdoor wine/drinks fridge 0.60 · built-in gas grill 1.10 with drawers · doors 0.80 · sink 0.80 · drawers 0.50 ---------- */
 {const KX0=-4.3,KX1=-.5,ZB=-.23,ZF=-.88,CH=.92,FR=ZF+.02;
- const darkStoneTex=canvasTex(512,(g,S)=>{g.fillStyle='#d2bb98';g.fillRect(0,0,S,S);const r=rng(77);
+ const darkStoneTex=canvasTex(1024,(g,S)=>{g.fillStyle='#d2bb98';g.fillRect(0,0,S,S);const r=rng(77);
    for(let i=0;i<500;i++){g.fillStyle=`rgba(${r()>.5?'236,224,204':'176,150,112'},${.2+r()*.3})`;g.fillRect(r()*S,r()*S,1+r()*3,1+r()*3);}
    for(let i=0;i<9;i++){g.strokeStyle=`rgba(150,118,80,${.12+r()*.22})`;g.lineWidth=.6+r()*1.8;g.beginPath();let x=r()*S,y=0;g.moveTo(x,y);
      while(y<S){const nx=x+(r()-.45)*22,ny=y+40+r()*50;g.quadraticCurveTo(x+(r()-.5)*30,(y+ny)/2,nx,ny);x=nx;y=ny;}g.stroke();}});
@@ -1070,14 +1071,16 @@ if(navigator.xr&&navigator.xr.isSessionSupported){navigator.xr.isSessionSupporte
 }).catch(()=>{});}
 vrBtn.addEventListener('click',async()=>{
   if(vrSession){vrSession.end();return;}
-  try{const sess=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});
-    vrSession=sess;await renderer.xr.setSession(sess);vrBtn.textContent='יציאה מ־VR';
+  try{renderer.xr.setFramebufferScaleFactor(1.4);
+    const sess=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});
+    vrSession=sess;await renderer.xr.setSession(sess);if(renderer.xr.setFoveation)renderer.xr.setFoveation(.6);vrBtn.textContent='יציאה מ־VR';
     savedCam={p:camera.position.clone(),q:camera.quaternion.clone(),walk:walking,shadow:renderer.shadowMap.enabled};
-    if(walking)setWalk(false);setCut(false);anim=null;controls.enabled=false;renderer.shadowMap.enabled=false;
+    if(walking)setWalk(false);setCut(false);anim=null;controls.enabled=false;
+    const resizeShadow=n=>{sun.shadow.mapSize.set(n,n);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}};resizeShadow(2048);savedCam.resizeShadow=resizeShadow;
     const inside=camera.position.x>-.2&&camera.position.x<11.6&&camera.position.z>-.2&&camera.position.z<17.5&&camera.position.y<2.5;
     rig.position.set(inside?camera.position.x:3.3,0,inside?camera.position.z:2.6);rig.rotation.set(0,inside?yaw:2.6,0);
     sess.addEventListener('end',()=>{vrSession=null;vrBtn.textContent='כניסה ל־VR (Meta Quest)';rig.position.set(0,0,0);rig.rotation.set(0,0,0);
-      renderer.shadowMap.enabled=savedCam.shadow;camera.position.copy(savedCam.p);camera.quaternion.copy(savedCam.q);controls.enabled=true;controls.update();});
+      renderer.shadowMap.enabled=savedCam.shadow;savedCam.resizeShadow(4096);camera.position.copy(savedCam.p);camera.quaternion.copy(savedCam.q);controls.enabled=true;controls.update();});
   }catch(err){vrTip.textContent='לא הצלחתי לפתוח VR כאן ('+(err&&err.message||err)+'). ייתכן שהדף שבתוכו המודל מוצג חוסם VR. אפשר לבקש ממני גרסה עצמאית לפתיחה במשקפיים.';}});
 // controllers: a soft laser; trigger opens/closes whatever it points at
 const vrPick=[doorMesh,...fridgeDoors.map(f=>f.leaf),...roomDoors.map(d=>d.leaf),...pickMap.keys()];
@@ -1159,6 +1162,23 @@ function tick(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
   for(const r of rooms){tmp.set(r.x,1.2,r.z).project(camera);const vis=!eye&&tmp.z<1&&Math.abs(tmp.x)<1.1&&Math.abs(tmp.y)<1.1&&camera.position.distanceTo(tmp.set(r.x,1.2,r.z))>2.2;
     r.el.style.visibility=vis?'visible':'hidden';if(vis){tmp.set(r.x,1.2,r.z).project(camera);r.el.style.left=((tmp.x+1)/2*w)+'px';r.el.style.top=((1-tmp.y)/2*h)+'px';}}
   }
+
+// ---- performance: merge static geometry per material so the headset can afford higher resolution and shadows ----
+if(THREE.BufferGeometryUtils){scene.updateMatrixWorld(true);
+  const pieceSet=new Set(pieces.map(p=>p.m)),buckets=new Map(),drop=[];
+  for(const o of scene.children){
+    if(!o.isMesh||o.isInstancedMesh||o===ground||pieceSet.has(o)||pickMap.has(o)||o.userData.keep)continue;
+    const m=o.material;if(Array.isArray(m)||m.transparent)continue;
+    let g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);if(g.index)g=g.toNonIndexed();
+    for(const k of Object.keys(g.attributes))if(!['position','normal','uv'].includes(k))g.deleteAttribute(k);
+    if(!g.attributes.uv)g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+    if(!g.attributes.normal)g.computeVertexNormals();
+    g.clearGroups();const key=[m.type,m.color.getHex(),m.roughness,m.metalness,m.map?m.map.uuid:0,m.emissive?m.emissive.getHex():0,m.emissiveIntensity||0,m.side,m.flatShading?1:0,m.clearcoat||0].join('|');
+    if(!buckets.has(key))buckets.set(key,{m,list:[]});buckets.get(key).list.push(g);drop.push(o);}
+  let made=0;for(const {m,list} of buckets.values()){const g=THREE.BufferGeometryUtils.mergeBufferGeometries(list,false);if(!g)continue;
+    const mm=new THREE.Mesh(g,m);mm.castShadow=mm.receiveShadow=true;mm.matrixAutoUpdate=false;scene.add(mm);made++;}
+  for(const o of drop)scene.remove(o);
+  console.log('merged',drop.length,'meshes into',made);}
 document.getElementById('loading').hidden=true;
 renderer.setAnimationLoop(tick);
 };
